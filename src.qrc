@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Sniffer.png</file>
+        <file>Stop.png</file>
+        <file>Clear.png</file>
+        <file>Start.png</file>
+    </qresource>
+</RCC>
