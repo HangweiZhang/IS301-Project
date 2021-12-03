@@ -21,7 +21,8 @@ Sniffer::Sniffer(QWidget *parent)
         int res = -1;
         res = openAdapter();
         if(res == 0){
-            CapThread *capthread = new CapThread(adhandle);
+            capthread = new CapThread(adhandle);
+            capthread->setFlag();
             capthread->start();
         }
 
@@ -32,12 +33,10 @@ Sniffer::Sniffer(QWidget *parent)
     });
 
     connect(ui->actionStop, &QAction::triggered, this, [=](){
-        if(capthread){
-            if(capthread->isRunning()){
-                capthread->quit();
-                delete capthread;
-                capthread = nullptr;
-            }
+        if(capthread && capthread->isRunning()){
+            capthread->setFlag();
+            capthread->quit();
+            capthread = nullptr;
         }
 
         ui->actionStart->setEnabled(true);
