@@ -9,14 +9,19 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    main.cpp \
-    sniffer.cpp
+    CapThread.cpp \
+    DataPackage.cpp \
+    Sniffer.cpp \
+    main.cpp
 
 HEADERS += \
-    sniffer.h
+    CapThread.h \
+    DataPackage.h \
+    HeaderInfo.h \
+    Sniffer.h
 
 FORMS += \
-    sniffer.ui
+    Sniffer.ui
 
 INCLUDEPATH += D:\QtProject\Zsniffer_test\npcap-sdk-1.11\Include
 LIBS += D:\QtProject\Zsniffer_test\npcap-sdk-1.11\Lib\x64\wpcap.lib
