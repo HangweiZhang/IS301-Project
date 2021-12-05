@@ -7,6 +7,8 @@
 #include "CapThread.h"
 #include "HeaderInfo.h"
 #include "DataPackage.h"
+#include <QVector>
+#include <QtDebug>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Sniffer; }
@@ -23,6 +25,9 @@ public:
     void showNetworkCard();     // show the available network card
     int openAdapter();      // open the adapter
 
+public slots:
+    void handleData(DataPackage data);      // handle the recieved data
+
 private slots:
     void on_comboBox_currentIndexChanged(int index);    // choose the device
 
@@ -33,5 +38,6 @@ private:
     char errbuf[PCAP_ERRBUF_SIZE];      // npcap: errbuf
     pcap_t *adhandle;       // the chosen adapter
     CapThread *capthread;       // capture thread
+    int countNum;       // table widget NO.
 };
 #endif // SNIFFER_H

@@ -6,11 +6,6 @@ CapThread::CapThread(pcap_t *adhandle)
     this->flag = false;
 }
 
-CapThread::~CapThread()
-{
-
-}
-
 void CapThread::setFlag()
 {
     this->flag = !this->flag;
@@ -56,17 +51,19 @@ void CapThread::run()
         data.setLen(len);
         data.setDataPointer(pkt_data, len);
         QString timeStamp = timestr;
-        data.setTimStamp(timeStamp);
+        data.setTimeStamp(timeStamp);
         ethernetHandle(data);
 
         // 构建data成功
         // 发送data
         if(data.pkt_data){
-            qDebug() << data.getProtocol() << " " << data.getInfo();
+            // qDebug() << data.getProtocol() << " " << data.getInfo();
+            emit sendData(data);
         }
     }
 }
 
+// to be continued
 void CapThread::ethernetHandle(DataPackage &data)
 {
     ETHER_HEADER *ether;
@@ -136,6 +133,7 @@ void CapThread::arpHandle(DataPackage &data)
     }
 }
 
+// to be continued
 void CapThread::ipHandle(DataPackage &data)
 {
     if(data.pkt_data){
@@ -167,6 +165,7 @@ void CapThread::ipHandle(DataPackage &data)
     }
 }
 
+// to be continued
 void CapThread::icmpHandle(DataPackage &data)
 {
     if(data.pkt_data){
@@ -236,6 +235,7 @@ void CapThread::icmpHandle(DataPackage &data)
     }
 }
 
+// to be continued
 void CapThread::tcpHandle(DataPackage &data, int packageLen)
 {
     if(data.pkt_data){

@@ -8,13 +8,16 @@ Sniffer::Sniffer(QWidget *parent)
     ui->setupUi(this);
     ui->statusbar->showMessage("Welcome to Zsniffer!");
 
-    // show the network card
-    showNetworkCard();
-
     // initialization
     dev = nullptr;
     adhandle = nullptr;
     capthread = nullptr;
+    countNum = 0;
+    ui->tableWidget->setColumnWidth(2, 200);
+    ui->tableWidget->setColumnWidth(3, 200);
+
+    // show the network card
+    showNetworkCard();
 
     // functions
     connect(ui->actionStart, &QAction::triggered, this, [=](){
@@ -30,6 +33,12 @@ Sniffer::Sniffer(QWidget *parent)
         ui->actionStop->setEnabled(true);
         ui->actionClear->setEnabled(false);
         ui->comboBox->setEnabled(false);
+
+        ui->tableWidget->clearContents();
+        ui->tableWidget->setRowCount(0);
+        countNum = 0;
+
+        connect(capthread, &CapThread::sendData, this, &Sniffer::handleData);
     });
 
     connect(ui->actionStop, &QAction::triggered, this, [=](){
@@ -37,6 +46,11 @@ Sniffer::Sniffer(QWidget *parent)
             capthread->setFlag();
             capthread->quit();
             capthread = nullptr;
+        }
+
+        if(adhandle){
+            pcap_close(adhandle);
+            adhandle = nullptr;
         }
 
         ui->actionStart->setEnabled(true);
@@ -126,4 +140,19 @@ int Sniffer::openAdapter(){
     device_description.replace(" '", ": ");
     ui->statusbar->showMessage(device_description);
     return 0;
+}
+
+void Sniffer::handleData(DataPackage data)
+{
+    ui->tableWidget->insertRow(countNum);
+
+    ui->tableWidget->setItem(countNum, 0, new QTableWidgetItem(QString::number(countNum+1)));
+    ui->tableWidget->setItem(countNum, 1, new QTableWidgetItem(data.getTimeStamp()));
+    ui->tableWidget->setItem(countNum, 2, new QTableWidgetItem(data.getSrc()));
+    ui->tableWidget->setItem(countNum, 3, new QTableWidgetItem(data.getDes()));
+    ui->tableWidget->setItem(countNum, 4, new QTableWidgetItem(data.getProtocol()));
+    ui->tableWidget->setItem(countNum, 5, new QTableWidgetItem(data.getLen()));
+    ui->tableWidget->setItem(countNum, 6, new QTableWidgetItem(data.getInfo()));
+
+    countNum++;
 }
