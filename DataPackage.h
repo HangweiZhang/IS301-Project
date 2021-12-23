@@ -35,6 +35,7 @@ public:
    QString getLen();
    QString getInfo();
    QString getProtocol();
+   int getType();
 
    // mac info
    // ethernet header

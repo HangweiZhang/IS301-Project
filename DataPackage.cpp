@@ -90,6 +90,11 @@ QString DataPackage::getProtocol()
     }
 }
 
+int DataPackage::getType()
+{
+    return this->type;
+}
+
 QString DataPackage::getSrc()
 {
     if(this->type == 1)

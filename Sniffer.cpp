@@ -6,7 +6,7 @@ Sniffer::Sniffer(QWidget *parent)
     , ui(new Ui::Sniffer)
 {
     ui->setupUi(this);
-    ui->statusbar->showMessage("Welcome to Zsniffer!");
+    ui->statusbar->showMessage("Welcome to ZLsniffer!");
 
     // initialization
     dev = nullptr;
@@ -57,6 +57,12 @@ Sniffer::Sniffer(QWidget *parent)
         ui->actionStop->setEnabled(false);
         ui->actionClear->setEnabled(true);
         ui->comboBox->setEnabled(true);
+    });
+
+    connect(ui->actionClear, &QAction::triggered, this, [=](){
+        ui->tableWidget->clearContents();
+        ui->tableWidget->setRowCount(0);
+        countNum = 0;
     });
 }
 
@@ -153,6 +159,30 @@ void Sniffer::handleData(DataPackage data)
     ui->tableWidget->setItem(countNum, 4, new QTableWidgetItem(data.getProtocol()));
     ui->tableWidget->setItem(countNum, 5, new QTableWidgetItem(data.getLen()));
     ui->tableWidget->setItem(countNum, 6, new QTableWidgetItem(data.getInfo()));
+
+    int type = data.getType();
+    QColor color;
+
+    switch (type) {
+    case 1 : // ARP
+        color = QColor(255, 228, 225);
+        break;
+    case 2 : // ICMP
+        color = QColor(255, 250, 205);
+        break;
+    case 3 : // TCP
+        color = QColor(220, 248, 255);
+        break;
+    case 4 : // UDP
+        color = QColor(240, 238, 255);
+        break;
+    default:
+        color = QColor(220, 220, 220);
+    }
+
+    for(int i = 0; i < 7; i++){
+        ui->tableWidget->item(countNum,i)->setBackground(color);
+    }
 
     countNum++;
 }
