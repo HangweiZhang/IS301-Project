@@ -24,12 +24,16 @@ public:
 
     void showNetworkCard();     // show the available network card
     int openAdapter();      // open the adapter
+    void showARPtree(int row);  // show the detailed information(ARP)
+    void showIPtree(int row);  // show the detailed information(IP)
 
 public slots:
     void handleData(DataPackage data);      // handle the recieved data
 
 private slots:
     void on_comboBox_currentIndexChanged(int index);    // choose the device
+
+    void on_tableWidget_cellClicked(int row, int column);
 
 private:
     Ui::Sniffer *ui;
@@ -38,6 +42,7 @@ private:
     char errbuf[PCAP_ERRBUF_SIZE];      // npcap: errbuf
     pcap_t *adhandle;       // the chosen adapter
     CapThread *capthread;       // capture thread
-    int countNum;       // table widget NO.
+    int countNum;       // table widget (NO.-1)
+    QVector<DataPackage>datapackage;   // store data
 };
 #endif // SNIFFER_H

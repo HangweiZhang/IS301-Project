@@ -293,6 +293,19 @@ QString DataPackage::getIpVersion()
     return QString::number(ip->ver_h_length >> 4);
 }
 
+QString DataPackage::getIpFlag(){
+    IP_HEADER*ip;
+    ip = (IP_HEADER*)(pkt_data + 14);
+    return QString::number((ntohs(ip->flag_offset)& 0xe000) >> 8,16);
+}
+
+QString DataPackage::getIpReservedBit(){
+    IP_HEADER*ip;
+    ip = (IP_HEADER*)(pkt_data + 14);
+    int bit = (ntohs(ip->flag_offset) & 0x8000) >> 15;
+    return QString::number(bit);
+}
+
 // arp info
 QString DataPackage::getArpHardwareType()
 {
@@ -442,6 +455,17 @@ QString DataPackage::getIcmpSequence()
     return QString::number(ntohs(icmp->sequence));
 }
 
+QString DataPackage::getIcmpData(int size){
+    char *icmp;
+    icmp = (char*)(pkt_data + 14 + 20 + 8);
+    QString res= "";
+    for(int i = 0;i < size;i++){
+        res += (*icmp);
+        icmp++;
+    }
+    return res;
+}
+
 // tcp info
 QString DataPackage::getTcpSrc()
 {
@@ -484,11 +508,53 @@ QString DataPackage::getTcpHeaderLength()
     return QString::number(length * 4) + " bytes (" + QString::number(length) + ")";
 }
 
+QString DataPackage::getTcpRawHeaderLength(){
+    TCP_HEADER *tcp;
+    tcp = (TCP_HEADER*)(pkt_data + 14 + 20);
+    return QString::number(tcp->header_length >> 4);
+}
+
 QString DataPackage::getTcpFlags()
 {
     TCP_HEADER *tcp;
     tcp = (TCP_HEADER*)(this->pkt_data + 14 + 20);
     return QString::number(tcp->flags,16);
+}
+
+QString DataPackage::getTcpPSH(){
+    TCP_HEADER *tcp;
+    tcp = (TCP_HEADER*)(pkt_data + 14 + 20);
+    return QString::number(((tcp->flags) & 0x08) >> 3);
+}
+
+QString DataPackage::getTcpACK(){
+    TCP_HEADER *tcp;
+    tcp = (TCP_HEADER*)(pkt_data + 14 + 20);
+    return QString::number(((tcp->flags) & 0x10) >> 4);
+}
+
+QString DataPackage::getTcpSYN(){
+    TCP_HEADER *tcp;
+    tcp = (TCP_HEADER*)(pkt_data + 14 + 20);
+    return QString::number(((tcp->flags) & 0x02) >> 1);
+}
+
+QString DataPackage::getTcpURG(){
+    TCP_HEADER *tcp;
+    tcp = (TCP_HEADER*)(pkt_data + 14 + 20);
+    return QString::number(((tcp->flags) & 0x20) >> 5);
+}
+
+QString DataPackage::getTcpFIN(){
+    TCP_HEADER *tcp;
+    tcp = (TCP_HEADER*)(pkt_data + 14 + 20);
+    return QString::number((tcp->flags) & 0x01);
+}
+
+QString DataPackage::getTcpRST(){
+    TCP_HEADER *tcp;
+    tcp = (TCP_HEADER*)(pkt_data + 14 + 20);
+    return QString::number(((tcp->flags) & 0x04) >> 2);
 }
 
 QString DataPackage::getTcpWindow()

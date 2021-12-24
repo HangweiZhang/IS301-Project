@@ -59,6 +59,8 @@ public:
    QString getIpTOS();
    QString getIpHeaderLength();
    QString getIpVersion();
+   QString getIpFlag();
+   QString getIpReservedBit();
 
    // arp info
    // arp header
@@ -80,6 +82,7 @@ public:
    // 仅处理请求和应答报文格式
    QString getIcmpIdentification();
    QString getIcmpSequence();
+   QString getIcmpData(int size);   // get the icmp data
 
    // tcp info
    // tcp header
@@ -88,7 +91,14 @@ public:
    QString getTcpSequence();
    QString getTcpAck();
    QString getTcpHeaderLength();
+   QString getTcpRawHeaderLength();
    QString getTcpFlags();
+   QString getTcpPSH();                      // PSH flag
+   QString getTcpACK();                      // ACK flag
+   QString getTcpSYN();                      // SYN flag
+   QString getTcpURG();                      // URG flag
+   QString getTcpFIN();                      // FIN flag
+   QString getTcpRST();                      // RST flag
    QString getTcpWindow();
    QString getTcpChecksum();
    QString getTcpUrgent();

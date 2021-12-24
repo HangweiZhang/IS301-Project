@@ -13,6 +13,7 @@ Sniffer::Sniffer(QWidget *parent)
     adhandle = nullptr;
     capthread = nullptr;
     countNum = 0;
+    QVector<DataPackage>().swap(datapackage);
     ui->tableWidget->setColumnWidth(2, 200);
     ui->tableWidget->setColumnWidth(3, 200);
 
@@ -37,6 +38,8 @@ Sniffer::Sniffer(QWidget *parent)
         ui->tableWidget->clearContents();
         ui->tableWidget->setRowCount(0);
         countNum = 0;
+        ui->treeWidget->clear();
+        QVector<DataPackage>().swap(datapackage);
 
         connect(capthread, &CapThread::sendData, this, &Sniffer::handleData);
     });
@@ -63,6 +66,8 @@ Sniffer::Sniffer(QWidget *parent)
         ui->tableWidget->clearContents();
         ui->tableWidget->setRowCount(0);
         countNum = 0;
+        ui->treeWidget->clear();
+        QVector<DataPackage>().swap(datapackage);
     });
 }
 
@@ -70,6 +75,7 @@ Sniffer::~Sniffer()
 {
     delete ui;
     pcap_freealldevs(alldevs);
+    QVector<DataPackage>().swap(datapackage);
 }
 
 // show the available network card
@@ -151,6 +157,7 @@ int Sniffer::openAdapter(){
 void Sniffer::handleData(DataPackage data)
 {
     ui->tableWidget->insertRow(countNum);
+    this->datapackage.push_back(data);
 
     ui->tableWidget->setItem(countNum, 0, new QTableWidgetItem(QString::number(countNum+1)));
     ui->tableWidget->setItem(countNum, 1, new QTableWidgetItem(data.getTimeStamp()));
@@ -185,4 +192,261 @@ void Sniffer::handleData(DataPackage data)
     }
 
     countNum++;
+}
+
+// 设定选择行，单项选择
+// 点击tableWidget中item，treeWidget中显示详细信息
+void Sniffer::on_tableWidget_cellClicked(int row, int column)
+{
+    ui->treeWidget->clear();
+    // Frame
+    QString tree1 = "Frame  " + QString::number(row + 1) + ":  "
+            + datapackage[row].getLen() + " bytes  captured";
+    QTreeWidgetItem *item1 = new QTreeWidgetItem(QStringList()<<tree1);
+    ui->treeWidget->addTopLevelItem(item1);
+    item1->setBackground(0, QBrush(QColor(245, 245, 245)));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Frame Number:  " + QString::number(row + 1)));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Frame Length:  " + datapackage[row].getLen()));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Arrival Time:  " + datapackage[row].getTimeStamp()));
+
+    // Ethernet II
+    QString tree2 = "Ethernet II,  Src:  " + datapackage[row].getMacSrc()
+               + ",  Dst:  " + datapackage[row].getMacDes();
+    QTreeWidgetItem *item2 = new QTreeWidgetItem(QStringList()<<tree2);
+    ui->treeWidget->addTopLevelItem(item2);
+    item2->setBackground(0, QBrush(QColor(245, 245, 245)));
+    item2->addChild(new QTreeWidgetItem(QStringList()<<"Destination:  " + datapackage[row].getMacDes()));
+    item2->addChild(new QTreeWidgetItem(QStringList()<<"Source:  " + datapackage[row].getMacSrc()));
+    item2->addChild(new QTreeWidgetItem(QStringList()<<"Type:  " + datapackage[row].getMacType()));
+
+    // more information
+    if(datapackage[row].getType() == 1){ // ARP
+        showARPtree(row);
+    }else{ // IPv4
+        showIPtree(row);
+    }
+}
+
+void Sniffer::showARPtree(int row)
+{
+    QString ArpType = datapackage[row].getArpOP();
+    QTreeWidgetItem *item1 = new QTreeWidgetItem(QStringList()<<"Address Resolution Protocol  " + ArpType);
+    ui->treeWidget->addTopLevelItem(item1);
+    item1->setBackground(0, QBrush(QColor(245, 245, 245)));
+
+    QString HardwareType = datapackage[row].getArpHardwareType();
+    QString protocolType = datapackage[row].getArpProtocolType();
+    QString HardwareSize = datapackage[row].getArpMacLength();
+    QString protocolSize = datapackage[row].getArpIpLength();
+    QString srcMacAddr = datapackage[row].getArpEtherSrc();
+    QString desMacAddr = datapackage[row].getArpEtherDes();
+    QString srcIpAddr = datapackage[row].getArpIpSrc();
+    QString desIpAddr = datapackage[row].getArpIpDes();
+
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Hardware type:  " + HardwareType));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Protocol type:  " + protocolType));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Hardware size:  " + HardwareSize));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Protocol size:  " + protocolSize));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Opcode:  " + ArpType));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Sender MAC address:  " + srcMacAddr));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Sender IP address:  " + srcIpAddr));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Target MAC address:  " + desMacAddr));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Target IP address:  " + desIpAddr));
+    return;
+}
+
+void Sniffer::showIPtree(int row)
+{
+    QString srcIp = datapackage[row].getIpSrc();
+    QString desIp = datapackage[row].getIpDes();
+
+    QTreeWidgetItem*item1 = new QTreeWidgetItem(QStringList()<<"Internet Protocol Version 4, Src:  " + srcIp + ", Dst:  " + desIp);
+    ui->treeWidget->addTopLevelItem(item1);
+    item1->setBackground(0, QBrush(QColor(245, 245, 245)));
+
+    QString version = datapackage[row].getIpVersion();
+    QString headerLength = datapackage[row].getIpHeaderLength();
+    QString Tos = datapackage[row].getIpTOS();
+    QString totalLength = datapackage[row].getIpTotalLength();
+    QString id = "0x  " + datapackage[row].getIpIdentification();
+    QString flags = datapackage[row].getIpFlag();
+    if(flags.size()<2)
+        flags = "0" + flags;
+    flags = "0x" + flags;
+    QString FragmentOffset = datapackage[row].getIpOffset();
+    QString ttl = datapackage[row].getIpTTL();
+    QString protocol = datapackage[row].getIpProtocol();
+    QString checksum = "0x" + datapackage[row].getIpChecksum();
+    int dataLengthofIp = totalLength.toUtf8().toInt() - 20;
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"0100 .... = Version:  " + version));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<".... 0101 = Header Length:  " + headerLength));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"TOS:  " + Tos));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Total Length:  " + totalLength));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Identification:  " + id));
+
+    QString reservedBit = datapackage[row].getIpReservedBit();
+    QString DF = datapackage[row].getIpDF();
+    QString MF = datapackage[row].getIpMF();
+    QString FLAG = ",";
+
+    if(reservedBit == "1"){
+        FLAG += "Reserved bit";
+    }
+    else if(DF == "1"){
+        FLAG += "Don't fragment";
+    }
+    else if(MF == "1"){
+        FLAG += "More fragment";
+    }
+    if(FLAG.size() == 1)
+        FLAG = "";
+    QTreeWidgetItem *bitTree = new QTreeWidgetItem(QStringList()<<"Flags:  " + flags + FLAG);
+    item1->addChild(bitTree);
+    QString temp = reservedBit == "1"?"Set":"Not set";
+    bitTree->addChild(new QTreeWidgetItem(QStringList()<<reservedBit + "... .... = Reserved bit:  " + temp));
+    temp = DF == "1"?"Set":"Not set";
+    bitTree->addChild(new QTreeWidgetItem(QStringList()<<"." + DF + ".. .... = Don't fragment:  " + temp));
+    temp = MF == "1"?"Set":"Not set";
+    bitTree->addChild(new QTreeWidgetItem(QStringList()<<".." + MF + ". .... = More fragment:  " + temp));
+
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Fragment Offset:  " + FragmentOffset));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Time to Live:  " + ttl));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Protocol:  " + protocol));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Header checksum:  " + checksum));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Source Address:  " + srcIp));
+    item1->addChild(new QTreeWidgetItem(QStringList()<<"Destination Address:  " + desIp));
+
+    switch (datapackage[row].getType()) {
+    case 2: {// ICMP
+        dataLengthofIp -= 8;
+        QTreeWidgetItem *item2 = new QTreeWidgetItem(QStringList()<<"Internet Message Protocol");
+        ui->treeWidget->addTopLevelItem(item2);
+        item2->setBackground(0, QBrush(QColor(245, 245, 245)));
+
+        QString type = datapackage[row].getIcmpType();
+        QString code = datapackage[row].getIcmpCode();
+        QString info = ui->tableWidget->item(row,6)->text();
+        QString checksum = "0x" + datapackage[row].getIcmpChecksum();
+        QString id = datapackage[row].getIcmpIdentification();
+        QString seq = datapackage[row].getIcmpSequence();
+        item2->addChild(new QTreeWidgetItem(QStringList()<<"type:  " + type + "(" + info + ")"));
+        item2->addChild(new QTreeWidgetItem(QStringList()<<"code:  " + code));
+        item2->addChild(new QTreeWidgetItem(QStringList()<<"Checksum:  " + checksum));
+        item2->addChild(new QTreeWidgetItem(QStringList()<<"type:  " + type + "(" + info + ")"));
+        item2->addChild(new QTreeWidgetItem(QStringList()<<"Identifier:  " + id));
+        item2->addChild(new QTreeWidgetItem(QStringList()<<"Sequence Number:  " + seq));
+        if(dataLengthofIp > 0){
+            QTreeWidgetItem *dataItem = new QTreeWidgetItem(QStringList()<<"Data (" + QString::number(dataLengthofIp) + ") bytes");
+            item2->addChild(dataItem);
+            QString icmpData = datapackage[row].getIcmpData(dataLengthofIp);
+            dataItem->addChild(new QTreeWidgetItem(QStringList()<<icmpData));
+            dataItem->addChild(new QTreeWidgetItem(QStringList()<<"Length:  " + QString::number(dataLengthofIp)));
+        }
+        break;}
+
+    case 3: {// TCP
+        QString desPort = datapackage[row].getTcpDes();
+        QString srcPort = datapackage[row].getTcpSrc();
+        QString ack = datapackage[row].getTcpACK();
+        QString seq = datapackage[row].getTcpSequence();
+        QString headerLength = datapackage[row].getTcpHeaderLength();
+        int rawLength = datapackage[row].getTcpRawHeaderLength().toUtf8().toInt();
+        dataLengthofIp -= (rawLength * 4);
+        QString dataLength = QString::number(dataLengthofIp);
+        QString flag = datapackage[row].getTcpFlags();
+        while(flag.size()<2)
+            flag = "0" + flag;
+        flag = "0x" + flag;
+
+        QTreeWidgetItem *item3 = new QTreeWidgetItem(QStringList()<<"Transmission Control Protocol, Src Port:  "
+                                                     + srcPort + ", Dst Port:  " + desPort + ",Seq:  " + seq +
+                                                     ", Ack:  " + ack + ", Len:  " + dataLength);
+        ui->treeWidget->addTopLevelItem(item3);
+        item3->setBackground(0, QBrush(QColor(245, 245, 245)));
+
+        item3->addChild(new QTreeWidgetItem(QStringList()<<"Source Port:  " + srcPort));
+        item3->addChild(new QTreeWidgetItem(QStringList()<<"Destination Port:  " + desPort));
+        item3->addChild(new QTreeWidgetItem(QStringList()<<"Sequence Number (raw) :" + seq));
+        item3->addChild(new QTreeWidgetItem(QStringList()<<"Ackowledgment Number (raw) :" + ack));
+
+
+        QString sLength = QString::number(rawLength,2);
+        while(sLength.size()<4)
+            sLength = "0" + sLength;
+        item3->addChild(new QTreeWidgetItem(QStringList()<<sLength + " .... = Header Length:  " + headerLength));
+
+        QString PSH = datapackage[row].getTcpPSH();
+        QString URG = datapackage[row].getTcpURG();
+        QString ACK = datapackage[row].getTcpACK();
+        QString RST = datapackage[row].getTcpRST();
+        QString SYN = datapackage[row].getTcpSYN();
+        QString FIN = datapackage[row].getTcpFIN();
+        QString FLAG = "";
+
+        if(PSH == "1")
+            FLAG += "PSH,";
+        if(URG == "1")
+            FLAG += "UGR,";
+        if(ACK == "1")
+            FLAG += "ACK,";
+        if(RST == "1")
+            FLAG += "RST,";
+        if(SYN == "1")
+            FLAG += "SYN,";
+        if(FIN == "1")
+            FLAG += "FIN,";
+        FLAG = FLAG.left(FLAG.length()-1);
+        if(SYN == "1"){
+            item3->addChild(new QTreeWidgetItem(QStringList()<<"Sequence Number: 0 (relative sequence number)"));
+            item3->addChild(new QTreeWidgetItem(QStringList()<<"Acknowledgment Number: 0 (relative ack number)"));
+        }
+        if(SYN == "1" && ACK == "1"){
+            item3->addChild(new QTreeWidgetItem(QStringList()<<"Sequence Number: 0 (relative sequence number)"));
+            item3->addChild(new QTreeWidgetItem(QStringList()<<"Acknowledgment Number: 1 (relative ack number)"));
+        }
+        QTreeWidgetItem *flagTree = new QTreeWidgetItem(QStringList()<<"Flags:  " + flag + " (" + FLAG + ")");
+        item3->addChild(flagTree);
+        QString temp = URG == "1"?"Set":"Not set";
+        flagTree->addChild(new QTreeWidgetItem(QStringList()<<".... .." + URG + ". .... = Urgent(URG):" + temp));
+        temp = ACK == "1"?"Set":"Not set";
+        flagTree->addChild(new QTreeWidgetItem(QStringList()<<".... ..." + ACK + " .... = Acknowledgment(ACK):" + temp));
+        temp = PSH == "1"?"Set":"Not set";
+        flagTree->addChild(new QTreeWidgetItem(QStringList()<<".... .... " + PSH + "... = Push(PSH):" + temp));
+        temp = RST == "1"?"Set":"Not set";
+        flagTree->addChild(new QTreeWidgetItem(QStringList()<<".... .... ." + RST + ".. = Reset(RST):" + temp));
+        temp = SYN == "1"?"Set":"Not set";
+        flagTree->addChild(new QTreeWidgetItem(QStringList()<<".... .... .." + SYN + ". = Syn(SYN):" + temp));
+        temp = FIN == "1"?"Set":"Not set";
+        flagTree->addChild(new QTreeWidgetItem(QStringList()<<".... .... ..." + FIN + " = Fin(FIN):" + temp));
+
+        QString window = datapackage[row].getTcpWindow();
+        QString checksum = "0x" + datapackage[row].getTcpWindow();
+        QString urgent = datapackage[row].getTcpUrgent();
+        item3->addChild(new QTreeWidgetItem(QStringList()<<"window:  " + window));
+        item3->addChild(new QTreeWidgetItem(QStringList()<<"checksum:  " + checksum));
+        item3->addChild(new QTreeWidgetItem(QStringList()<<"Urgent Pointer:  " + urgent));
+        break;}
+
+    case 4:{ // UDP
+        QString srcPort = datapackage[row].getUdpSrc();
+        QString desPort = datapackage[row].getUdpDes();
+        QString Length = datapackage[row].getUdpDataLength();
+        QString checksum = "0x" + datapackage[row].getUdpChecksum();
+
+        QTreeWidgetItem *item4 = new QTreeWidgetItem(QStringList()<<"User Datagram Protocol, Src Port:  " + srcPort
+                                                     + ", Dst Port:  " + desPort);
+        ui->treeWidget->addTopLevelItem(item4);
+        item4->setBackground(0, QBrush(QColor(245, 245, 245)));
+
+        item4->addChild(new QTreeWidgetItem(QStringList()<<"Source Port:  " + srcPort));
+        item4->addChild(new QTreeWidgetItem(QStringList()<<"Destination Port:  " + desPort));
+        item4->addChild(new QTreeWidgetItem(QStringList()<<"length:  " + Length));
+        item4->addChild(new QTreeWidgetItem(QStringList()<<"Checksum:  " + checksum));
+        int udpLength = Length.toUtf8().toInt();
+        if(udpLength > 0){
+            item4->addChild(new QTreeWidgetItem(QStringList()<<"UDP PayLoad (" + QString::number(udpLength - 8) + " bytes)"));
+        }
+        break;}
+    default: break;
+    }
 }
