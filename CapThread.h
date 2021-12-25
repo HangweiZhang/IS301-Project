@@ -4,6 +4,7 @@
 #include <QThread>
 #include <HeaderInfo.h>
 #include <pcap.h>
+#include "winsock2.h"
 #include <QString>
 #include "DataPackage.h"
 #include <QDebug>
@@ -13,7 +14,6 @@ class CapThread : public QThread
     Q_OBJECT
 public:
     CapThread(pcap_t *adhandle);
-    ~CapThread();
 
     void run();
     static QString byteToHex(u_char *str, int size);
@@ -34,6 +34,10 @@ private:
     const u_char *pkt_data;
     time_t local_tv_sec;
     volatile bool flag;
+
+signals:
+    void sendData(DataPackage data);
+
 };
 
 #endif // CAPTHREAD_H
