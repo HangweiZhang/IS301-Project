@@ -635,3 +635,32 @@ void Sniffer::on_lineEdit_returnPressed()
     statusBar()->showMessage(QString::number(count) + " messages listed");
 }
 
+
+// filter rules
+// messagebox
+void Sniffer::on_actionFilter_rules_triggered()
+{
+    QMessageBox::about(this, "Filter rules",
+                       "<center><b>合理的过滤规则</b></center>\n"
+                       "<ul><li>基于协议过滤</li>"
+                       "<ul><li>arp:保留ARP协议数据</li>"
+                       "<li>icmp:保留ICMP协议数据</li>"
+                       "<li>tcp:保留TCP协议数据</li>"
+                       "<li>udp:保留UDP协议数据</li></ul>"
+                       "<li>基于源/目的地址过滤</li>"
+                       "<ul><li>src={source}:源地址为{source}</li>"
+                       "<li>des={destination}:目的地址为{destination}</li>"
+                       "<li>addr={source/destination}:源地址为{source}或目的地址为{destination}</li></ul></ul>"
+                       "\n"
+                       "(过滤规则不区分大小写且规则内不能含有空格)");
+}
+
+// about us
+void Sniffer::on_actionAbout_us_triggered()
+{
+    QMessageBox::about(this, tr("About us"),
+                 tr("<center><b>2021计网大作业</b></center>\n"
+                    "<center><b>——基于Pcap的网络嗅探器</b></center>\n"
+                    "<center>小组成员：章杭炜，李佳露</center>"));
+}
+

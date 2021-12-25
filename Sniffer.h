@@ -9,6 +9,7 @@
 #include "DataPackage.h"
 #include <QVector>
 #include <QtDebug>
+#include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Sniffer; }
@@ -38,6 +39,10 @@ private slots:
     void on_lineEdit_textChanged(const QString &arg1);  // filter related
 
     void on_lineEdit_returnPressed();   // filter related
+
+    void on_actionFilter_rules_triggered();
+
+    void on_actionAbout_us_triggered();
 
 private:
     Ui::Sniffer *ui;

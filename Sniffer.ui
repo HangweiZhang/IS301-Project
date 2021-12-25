@@ -227,6 +227,8 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionFilter_rules"/>
+    <addaction name="actionAbout_us"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -334,6 +336,16 @@
    </property>
    <property name="text">
     <string>Bottom</string>
+   </property>
+  </action>
+  <action name="actionFilter_rules">
+   <property name="text">
+    <string>Filter rules</string>
+   </property>
+  </action>
+  <action name="actionAbout_us">
+   <property name="text">
+    <string>About us</string>
    </property>
   </action>
  </widget>
