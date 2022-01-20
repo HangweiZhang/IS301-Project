@@ -12,5 +12,3 @@
   ![](https://github.com/HangweiZhang/Zsniffer/blob/main/clear.png)
 - 过滤规则
   ![](https://github.com/HangweiZhang/Zsniffer/blob/main/rules.png)
-- About us
-  ![](https://github.com/HangweiZhang/Zsniffer/blob/main/select_card.png)
