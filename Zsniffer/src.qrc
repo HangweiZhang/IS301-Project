@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Sniffer.png</file>
+        <file>Stop.png</file>
+        <file>Clear.png</file>
+        <file>Start.png</file>
+        <file>down.png</file>
+        <file>up.png</file>
+        <file>bottom.png</file>
+        <file>top.png</file>
+    </qresource>
+</RCC>
